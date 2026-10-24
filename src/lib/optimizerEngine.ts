@@ -547,7 +547,10 @@ export class RewardOptimizerEngine {
           if (!supported) continue;
         }
 
-        const convenienceFeeRate = offer.voucherConvenienceFeeRate || 0;
+        const convenienceFeeRate =
+          merchant?.voucherConvenienceFeeRate !== undefined
+            ? merchant.voucherConvenienceFeeRate
+            : offer.voucherConvenienceFeeRate || 0;
         const feeInr = roundToPaise(bill * convenienceFeeRate);
         const grossReturnRate = offer.multiplierRate;
         const grossSavings = roundToPaise(bill * grossReturnRate);
