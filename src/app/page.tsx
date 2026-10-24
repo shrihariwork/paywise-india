@@ -38,10 +38,11 @@ export default function Home() {
     }
   }, [wallet]);
 
+  const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
+
   const handleTestMerchantFromExplorer = (queryText: string) => {
+    setSelectedScenario(queryText);
     setActiveTab('agent');
-    // Allow AgentTab to pick up the query by dispatching a custom event or letting state pass
-    window.dispatchEvent(new CustomEvent('paywise_set_query', { detail: queryText }));
   };
 
   return (
@@ -57,7 +58,9 @@ export default function Home() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         {activeTab === 'agent' && (
           <AgentTab
+            key={selectedScenario || 'default'}
             wallet={wallet}
+            initialQuery={selectedScenario}
             onOpenWallet={() => setActiveTab('wallet')}
           />
         )}

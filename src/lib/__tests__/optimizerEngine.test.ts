@@ -31,11 +31,11 @@ describe('RewardOptimizerEngine - Deterministic Mathematical & FinTech Tests', (
   // Test 2: Utility & Floating Point Drift
   describe('FinTech Math & Formatting Utilities', () => {
     it('eliminates IEEE-754 floating point drift using roundToPaise', () => {
-      // 0.1 + 0.2 in raw JS is 0.30000000000000004
+      // 0.1 + 0.2 in raw JS produces IEEE-754 precision drift
       expect(0.1 + 0.2).not.toBe(0.3);
       expect(roundToPaise(0.1 + 0.2)).toBe(0.3);
 
-      const fee = 3500 * 0.0295; // 103.24999999999999
+      const fee = 3500 * 0.0295; // 103.2499...
       expect(roundToPaise(fee)).toBe(103.25);
     });
 
