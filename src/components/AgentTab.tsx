@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Sparkles,
   Mic,
@@ -18,8 +18,11 @@ import {
 import { formatINR, formatPercent } from '@/lib/utils';
 import { SpendingCategory, PaymentEnvironment } from '@/data/indianPaymentCatalog';
 
+import { parseIntentDeterministic } from '@/app/api/optimize/route';
+
 interface AgentTabProps {
   wallet: UserWallet;
+  initialQuery?: string | null;
   onOpenWallet: () => void;
 }
 
@@ -77,40 +80,38 @@ const QUICK_SCENARIOS = [
   },
 ];
 
-function getInitialOptimization(wallet: UserWallet): OptimizationResponsePayload {
-  const query = "I'm at DMart with a ₹3,500 bill";
+function getInitialOptimization(
+  wallet: UserWallet,
+  initialText?: string | null
+): OptimizationResponsePayload {
+  const query = initialText || "I'm at DMart with a ₹3,500 bill";
+  const parsed = parseIntentDeterministic(query);
   const optimization = RewardOptimizerEngine.optimize(wallet, {
-    merchantName: 'DMart',
-    category: 'GROCERY',
-    billAmount: 3500,
-    paymentEnvironment: 'OFFLINE_POS',
+    merchantName: parsed.merchantName,
+    category: parsed.category,
+    billAmount: parsed.billAmount,
+    paymentEnvironment: parsed.paymentEnvironment,
   });
 
   return {
     query,
-    parsedIntent: {
-      merchantName: 'DMart (Avenue Supermarts)',
-      category: 'GROCERY',
-      mccEstimate: '5411',
-      billAmount: 3500,
-      isOnline: false,
-      paymentEnvironment: 'OFFLINE_POS',
-      parserSource: 'DETERMINISTIC_FALLBACK',
-    },
+    parsedIntent: parsed,
     optimization,
-    aiSummary: `Optimal Strategy: Pay via ${optimization.bestOverall.title} to save ${formatINR(optimization.bestOverall.netSavingsInr)} (${formatPercent(optimization.bestOverall.effectiveReturnRate)}) on your ${formatINR(3500)} bill at DMart.`,
+    aiSummary: `Optimal Strategy: Pay via ${optimization.bestOverall.title} to save ${formatINR(optimization.bestOverall.netSavingsInr)} (${formatPercent(optimization.bestOverall.effectiveReturnRate)}) on your ${formatINR(parsed.billAmount)} bill at ${parsed.merchantName}.`,
   };
 }
 
 export const AgentTab: React.FC<AgentTabProps> = ({
   wallet,
+  initialQuery,
   onOpenWallet,
 }) => {
-  const [queryText, setQueryText] = useState("I'm at DMart with a ₹3,500 bill");
+  const defaultQuery = initialQuery || "I'm at DMart with a ₹3,500 bill";
+  const [queryText, setQueryText] = useState(defaultQuery);
   const [loading, setLoading] = useState(false);
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [resultData, setResultData] = useState<OptimizationResponsePayload>(() =>
-    getInitialOptimization(wallet)
+    getInitialOptimization(wallet, initialQuery)
   );
 
   const handleOptimize = useCallback(
@@ -143,20 +144,6 @@ export const AgentTab: React.FC<AgentTabProps> = ({
     },
     [queryText, wallet]
   );
-
-  // Listen to custom query events from MCC explorer
-  useEffect(() => {
-    const onCustomQuery = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
-      const q = customEvent.detail;
-      if (q) {
-        setQueryText(q);
-        void handleOptimize(q);
-      }
-    };
-    window.addEventListener('paywise_set_query', onCustomQuery);
-    return () => window.removeEventListener('paywise_set_query', onCustomQuery);
-  }, [handleOptimize]);
 
   const simulateVoiceInput = () => {
     setIsVoiceActive(true);
