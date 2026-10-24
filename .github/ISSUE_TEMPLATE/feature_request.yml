@@ -1,0 +1,32 @@
+name: Feature Request
+description: Propose a new feature, credit card rule, or optimization strategy
+title: "[FEAT]: "
+labels: ["type: feat"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a new feature for PayWise India!
+  - type: input
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: A concise description of what you're proposing.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Technical & Mathematical Details
+      description: Specify reward rates, MCC rules, caps, or architectural changes.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Compliance Checklist
+      options:
+        - label: Zero-PCI compliance maintained (no sensitive card details)
+          required: true
+        - label: Follows deterministic math without floating-point inaccuracies
+          required: true

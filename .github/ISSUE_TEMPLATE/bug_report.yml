@@ -1,0 +1,30 @@
+name: Bug Report
+description: Report a calculation discrepancy, MCC mismatch, or application bug
+title: "[BUG]: "
+labels: ["type: bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please report any reward calculation errors or bugs with full transaction context.
+  - type: input
+    id: transaction
+    attributes:
+      label: Transaction Scenario
+      description: e.g., "₹3,500 at DMart with HSBC Live+"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Mathematical Output
+      description: What was the expected cashback, discount, or points?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Output
+      description: What did PayWise India output instead?
+    validations:
+      required: true
