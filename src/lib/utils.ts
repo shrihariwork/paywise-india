@@ -26,8 +26,9 @@ export function formatINR(val: number, includeDecimals = false): string {
 }
 
 /**
- * Format percentage with 1 or 2 decimals
+ * Format percentage with 1 decimal place (e.g. 0.165 -> 16.5%)
  */
 export function formatPercent(val: number): string {
-  return `${(roundToPaise(val * 100) / 100).toFixed(1)}%`;
+  const percent = roundToPaise(val * 100);
+  return `${percent.toFixed(1)}%`;
 }
