@@ -78,6 +78,18 @@ const QUICK_SCENARIOS = [
     label: '☕ ₹280 at a local cafe (UPI QR only)',
     query: '₹280 at a local cafe counter (UPI QR only)',
   },
+  {
+    label: '⚡ ₹1,800 on Airtel Thanks',
+    query: 'Paying ₹1,800 broadband bill on Airtel Thanks app',
+  },
+  {
+    label: '📱 ₹1,200 Electricity on PhonePe',
+    query: 'Paying ₹1,200 electricity bill via PhonePe app',
+  },
+  {
+    label: '🛒 ₹2,500 at LuLu Hypermarket',
+    query: "Standing at LuLu Hypermarket billing counter with ₹2,500 grocery bill",
+  },
 ];
 
 function getInitialOptimization(
