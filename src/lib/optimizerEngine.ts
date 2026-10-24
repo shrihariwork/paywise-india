@@ -245,11 +245,12 @@ export class RewardOptimizerEngine {
     const pathways: PaymentPathway[] = [];
 
     // Strategy A: Direct Card Swipe / Tap
+    // Strategy A: Direct Card Swipe / Tap
     if (query.paymentEnvironment !== 'UPI_QR_ONLY') {
       for (const cardId of wallet.ownedCardIds) {
         const card = INSTRUMENT_MAP.get(cardId);
         if (!card) continue;
-        const pathway = this.evaluateDirectCard(card, wallet, query, merchant);
+        const pathway = this.evaluateDirectCard(card, wallet, query, merchant, cardId);
         if (pathway) pathways.push(pathway);
       }
     }
@@ -290,17 +291,19 @@ export class RewardOptimizerEngine {
     card: PaymentInstrument,
     wallet: UserWallet,
     query: QueryContext,
-    merchant?: MerchantDefinition
+    merchant?: MerchantDefinition,
+    requestedCardId?: string
   ): PaymentPathway | null {
     const bill = query.billAmount;
+    const effectiveId = requestedCardId || card.id;
 
     // Check MCC exclusions
     if (card.exclusions.includes(query.category)) {
       return {
-        id: `direct_${card.id}`,
+        id: `direct_${effectiveId}`,
         title: `${card.name} (Direct Swipe)`,
         strategyType: 'DIRECT_CARD',
-        instrumentId: card.id,
+        instrumentId: effectiveId,
         instrumentName: card.name,
         issuer: card.issuer,
         cardColor: card.cardColor,
@@ -322,7 +325,12 @@ export class RewardOptimizerEngine {
       };
     }
 
-    const currentCapUsed = wallet.monthlyCapUsed[card.id] || 0;
+    const currentCapUsed =
+      wallet.monthlyCapUsed[effectiveId] ||
+      wallet.monthlyCapUsed[card.id] ||
+      wallet.monthlyCapUsed[card.id.replace(/-/g, '_')] ||
+      wallet.monthlyCapUsed[card.id.replace(/_/g, '-')] ||
+      0;
     let earnedCashback = 0;
     let earnedPoints = 0;
     let pointsValueInr = 0;
@@ -395,7 +403,13 @@ export class RewardOptimizerEngine {
 
     // Milestone bonus weight (e.g. Amex Platinum Travel)
     let milestoneBonusInr = 0;
-    if (card.annualMilestoneBonus && wallet.targetMilestoneCards?.includes(card.id)) {
+    const isTargetMilestone =
+      wallet.targetMilestoneCards?.includes(effectiveId) ||
+      wallet.targetMilestoneCards?.includes(card.id) ||
+      wallet.targetMilestoneCards?.includes(card.id.replace(/-/g, '_')) ||
+      wallet.targetMilestoneCards?.includes(card.id.replace(/_/g, '-'));
+
+    if (card.annualMilestoneBonus && isTargetMilestone) {
       milestoneBonusInr = roundToPaise(bill * card.annualMilestoneBonus.effectiveBonusWeight);
       mathExplanation += ` + ${formatINR(milestoneBonusInr)} pro-rated toward ₹4L milestone.`;
     }
@@ -404,10 +418,10 @@ export class RewardOptimizerEngine {
     const netReturnRate = bill > 0 ? netSavings / bill : 0;
 
     return {
-      id: `direct_${card.id}`,
+      id: `direct_${effectiveId}`,
       title: `${card.name} (Direct Swipe/Tap)`,
       strategyType: 'DIRECT_CARD',
-      instrumentId: card.id,
+      instrumentId: effectiveId,
       instrumentName: card.name,
       issuer: card.issuer,
       cardColor: card.cardColor,
@@ -465,15 +479,31 @@ export class RewardOptimizerEngine {
         const currentCapUsed = wallet.monthlyCapUsed[card.id] || 0;
 
         // Check if card has a partner boost on this aggregator
-        const boost = aggregator.partnerCardBoosts.find((b) => b.cardId === card.id);
+        const cardSlug = card.id.replace(/_/g, '-');
+        const boost = aggregator.partnerCardBoosts.find(
+          (b) => b.cardId === card.id || b.cardId.replace(/_/g, '-') === cardSlug
+        );
+
         if (boost) {
           cardRate = boost.extraCashbackRate;
-        } else if (card.id === 'hsbc_live_plus') {
+        } else if (cardSlug === 'hsbc-live-plus') {
           // HSBC Live+ treats dining apps as MCC 5812 (10%)
           cardRate = 0.10;
-        } else if (card.id === 'sbi_cashback') {
+        } else if (cardSlug === 'sbi-cashback') {
           // SBI Cashback treats online dining app payments as online 5%
           cardRate = 0.05;
+        } else if (cardSlug === 'axis-airtel') {
+          cardRate = 0.10;
+        } else if (cardSlug === 'hdfc-swiggy' && aggregator.id === 'swiggy_dineout') {
+          cardRate = 0.10;
+        } else if (cardSlug === 'indusind-eazydiner' && aggregator.id === 'eazydiner_prime') {
+          cardRate = 0.25;
+        } else if (cardSlug === 'indusind-eazydiner-plat' && aggregator.id === 'eazydiner_prime') {
+          cardRate = 0.20;
+        } else if (cardSlug === 'yes-paisasave') {
+          cardRate = 0.06;
+        } else if (cardSlug === 'axis-neo' && aggregator.id === 'zomato_dining') {
+          cardRate = 0.40;
         }
 
         const maxCap = boost?.monthlyCapInr || 1500;
@@ -484,10 +514,10 @@ export class RewardOptimizerEngine {
         const netReturnRate = bill > 0 ? netSavings / bill : 0;
 
         pathways.push({
-          id: `dining_${aggregator.id}_${card.id}`,
+          id: `dining_${aggregator.id}_${cardId}`,
           title: `Double-Dip: ${aggregator.name} + ${card.name}`,
           strategyType: 'DINING_AGGREGATOR',
-          instrumentId: card.id,
+          instrumentId: cardId,
           instrumentName: card.name,
           issuer: card.issuer,
           cardColor: card.cardColor,
@@ -558,10 +588,10 @@ export class RewardOptimizerEngine {
         const netReturnRate = bill > 0 ? netSavings / bill : 0;
 
         pathways.push({
-          id: `voucher_${offer.portalId}_${card.id}`,
+          id: `voucher_${offer.portalId}_${cardId}`,
           title: `Voucher Trick: ${offer.portalName} via ${card.name}`,
           strategyType: 'INSTANT_VOUCHER',
-          instrumentId: card.id,
+          instrumentId: cardId,
           instrumentName: card.name,
           issuer: card.issuer,
           cardColor: card.cardColor,
@@ -606,31 +636,52 @@ export class RewardOptimizerEngine {
     const bill = query.billAmount;
 
     // 1. RuPay Credit Cards on UPI
-    const rupayCards = wallet.ownedCardIds
-      .map((id) => INSTRUMENT_MAP.get(id))
-      .filter((card): card is PaymentInstrument => Boolean(card?.type === 'RUPAY_UPI_CREDIT_CARD'));
+    for (const cardId of wallet.ownedCardIds) {
+      const rupayCard = INSTRUMENT_MAP.get(cardId);
+      if (!rupayCard || rupayCard.type !== 'RUPAY_UPI_CREDIT_CARD') continue;
 
-    for (const rupayCard of rupayCards) {
       let rewardRate = rupayCard.baseRewardRate;
       let note = `${formatPercent(rewardRate)} assured cashback on UPI QR Scan & Pay`;
 
-      // Tata Neu Infinity special Tata brand boost
-      if (
-        rupayCard.id === 'tata_neu_infinity_rupay' &&
-        merchant?.supportsTataNeuDirect
-      ) {
-        rewardRate = 0.10; // 10% on Tata brands (Westside, Croma, BigBasket, Taj)
-        note = `10% NeuCoins on Tata brand via Tata Neu UPI`;
+      const cardSlug = rupayCard.id.replace(/_/g, '-');
+      if (cardSlug === 'kiwi-rupay-upi') {
+        rewardRate = 0.02; // 2% assured on Kiwi scan & pay
+        note = '2% assured reward coins via Kiwi App UPI QR scan';
+      } else if (cardSlug === 'hdfc-tataneu-infinity') {
+        if (merchant?.supportsTataNeuDirect) {
+          rewardRate = 0.10; // 10% on Tata brands (Westside, Croma, BigBasket, Taj)
+          note = '10% NeuCoins on Tata brand via Tata Neu UPI';
+        } else {
+          rewardRate = 0.015;
+          note = '1.5% NeuCoins on RuPay UPI merchant QR scan';
+        }
+      } else if (cardSlug === 'hdfc-tataneu-plus') {
+        if (merchant?.supportsTataNeuDirect) {
+          rewardRate = 0.07;
+          note = '7% NeuCoins on Tata brand via Tata Neu UPI';
+        } else {
+          rewardRate = 0.01;
+        }
+      } else if (cardSlug === 'axis-fibe') {
+        if (query.category === 'DINING' || query.category === 'MOVIES') {
+          rewardRate = 0.03;
+          note = '3% cashback on dining & entertainment UPI transactions';
+        } else {
+          rewardRate = 0.01;
+        }
+      } else if (cardSlug === 'jupiter-edge-rupay') {
+        rewardRate = 0.02;
+        note = 'Up to 2% in Jewels on merchant UPI scan';
       }
 
       const netSavings = roundToPaise(bill * rewardRate);
       const netReturnRate = bill > 0 ? netSavings / bill : 0;
 
       pathways.push({
-        id: `upi_rupay_${rupayCard.id}`,
+        id: `upi_rupay_${cardId}`,
         title: `Scan & Pay: ${rupayCard.name} (RuPay UPI)`,
         strategyType: 'RUPAY_UPI',
-        instrumentId: rupayCard.id,
+        instrumentId: cardId,
         instrumentName: rupayCard.name,
         issuer: rupayCard.issuer,
         cardColor: rupayCard.cardColor,
@@ -709,9 +760,15 @@ export class RewardOptimizerEngine {
     merchant: MerchantDefinition | undefined,
     currentBestSavings: number
   ): MissingCardInsight | undefined {
-    // Collect all cards in master catalog not currently owned
+    // Collect all cards in master catalog not currently owned (normalized IDs)
+    const ownedSet = new Set([
+      ...wallet.ownedCardIds,
+      ...wallet.ownedCardIds.map((id) => id.replace(/-/g, '_')),
+      ...wallet.ownedCardIds.map((id) => id.replace(/_/g, '-')),
+    ]);
+
     const unownedCards = INDIAN_PAYMENT_INSTRUMENTS.filter(
-      (c) => !wallet.ownedCardIds.includes(c.id)
+      (c) => !ownedSet.has(c.id) && !ownedSet.has(c.id.replace(/-/g, '_'))
     );
 
     let bestMissingPathway: PaymentPathway | undefined;
@@ -739,8 +796,27 @@ export class RewardOptimizerEngine {
     const extraSavings = roundToPaise(bestMissingPathway.netSavingsInr - currentBestSavings);
     if (extraSavings <= 10) return undefined; // Ignore trivial differences
 
+    const legacyMap: Record<string, string> = {
+      'hsbc-live-plus': 'hsbc_live_plus',
+      'sbi-cashback': 'sbi_cashback',
+      'hdfc-swiggy': 'hdfc_swiggy',
+      'axis-airtel': 'airtel_axis',
+      'hdfc-infinia': 'hdfc_infinia',
+      'hdfc-regalia-gold': 'hdfc_regalia_gold',
+      'axis-atlas': 'axis_atlas',
+      'icici-amazon-pay': 'icici_amazon_pay',
+      'hdfc-tataneu-infinity': 'tata_neu_infinity_rupay',
+      'kiwi-rupay-upi': 'kiwi_rupay',
+      'amex-plat-travel': 'amex_plat_travel',
+    };
+
+    const usesSnakeCase = wallet.ownedCardIds.some((id) => id.includes('_'));
+    const chosenCardId = usesSnakeCase
+      ? legacyMap[bestMissingPathway.instrumentId] || bestMissingPathway.instrumentId
+      : bestMissingPathway.instrumentId;
+
     return {
-      cardId: bestMissingPathway.instrumentId,
+      cardId: chosenCardId,
       cardName: bestMissingPathway.instrumentName,
       pathway: bestMissingPathway,
       extraSavingsInr: extraSavings,

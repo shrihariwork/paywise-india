@@ -152,14 +152,27 @@ export function parseIntentDeterministic(query: string): ParsedQueryIntent {
       mcc = '7011';
       merchantName = 'Travel / Hotel';
     } else if (
-      lower.includes('shopping') ||
-      lower.includes('clothes') ||
-      lower.includes('mall') ||
-      lower.includes('apparel')
+      lower.includes('utility') ||
+      lower.includes('electricity') ||
+      lower.includes('water bill') ||
+      lower.includes('gas bill') ||
+      lower.includes('broadband') ||
+      lower.includes('wifi') ||
+      lower.includes('recharge') ||
+      lower.includes('dth')
     ) {
-      category = 'SHOPPING';
-      mcc = '5311';
-      merchantName = 'Retail Shopping';
+      category = 'UTILITIES';
+      mcc = '4900';
+      merchantName = 'Utilities & Bill Pay';
+    } else if (
+      lower.includes('fuel') ||
+      lower.includes('petrol') ||
+      lower.includes('diesel') ||
+      lower.includes('gas station')
+    ) {
+      category = 'FUEL';
+      mcc = '5541';
+      merchantName = 'Fuel Pump';
     }
   }
 

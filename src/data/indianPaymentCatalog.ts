@@ -1,3 +1,14 @@
+/**
+ * PayWise India — Indian Payment Catalog & Knowledge Graph
+ * Provides strongly-typed models, 60 credit/RuPay cards, dining aggregators, UPI apps,
+ * and merchant knowledge graph with MCC mappings.
+ */
+
+import {
+  INDIAN_CARDS_60_CATALOG,
+  CardProductRule,
+} from './indian-cards-catalog';
+
 export type SpendingCategory =
   | 'GROCERY'
   | 'DINING'
@@ -119,460 +130,243 @@ export interface MerchantDefinition {
 }
 
 // -------------------------------------------------------------------------
-// 1. MASTER INDIAN CREDIT CARDS & PAYMENT INSTRUMENTS
+// SPECIALIZED VOUCHER & MILESTONE CONFIGURATIONS
 // -------------------------------------------------------------------------
-export const INDIAN_PAYMENT_INSTRUMENTS: PaymentInstrument[] = [
-  {
-    id: 'hdfc_infinia',
-    name: 'HDFC Infinia Metal Credit Card',
-    issuer: 'HDFC Bank',
-    network: 'Visa',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.033, // 5 points per ₹150 = 3.33%
-    pointValueInr: 1.0, // 1 Reward Point = ₹1.00 on SmartBuy flights/hotels/Apple
-    exclusions: ['FUEL', 'RENT', 'UTILITIES'],
-    cardColor: {
-      gradient: 'from-zinc-900 via-slate-800 to-black',
-      textColor: 'text-amber-300',
-      badgeColor: 'bg-amber-400/20 text-amber-300 border-amber-400/30',
+const SPECIAL_VOUCHER_OFFERS: Record<string, VoucherPortalOffer[]> = {
+  'hdfc-infinia': [
+    {
+      portalId: 'hdfc_smartbuy_gyftr',
+      portalName: 'HDFC SmartBuy GyFTR',
+      multiplierRate: 0.165,
+      monthlyBonusCapInr: 15000,
+      voucherConvenienceFeeRate: 0.025,
+      eligibleCategories: ['DINING', 'SHOPPING', 'MOVIES', 'GROCERY'],
+      supportedBrands: [
+        'LIFESTYLE',
+        'SHOPPERS_STOP',
+        'WESTSIDE',
+        'CROMA',
+        'PVR',
+        'CINEPOLIS',
+        'MAINLAND_CHINA',
+        'BARBEQUE_NATION',
+        'DECATHLON',
+        'BATA',
+        'STARBUCKS',
+        'MCDONALDS',
+        'MORE_RETAIL',
+        'RELIANCE_SMART',
+        'MAKEMYTRIP',
+      ],
     },
-    keyPerks: [
-      '3.3% base reward rate (1 RP = ₹1.00)',
-      '16.5% (5X RP) via SmartBuy GyFTR vouchers on dining, fashion & movies',
-      '₹15,000 monthly bonus reward points cap',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['TRAVEL'],
-        mccs: ['4511', '4722', '7011'],
-        rewardRate: 0.33, // 10X points on flights/hotels via SmartBuy
-        monthlyCapInr: 15000,
-        isOnlineOnly: true,
-        description: '10X points (33% value) on SmartBuy Flights & Hotels',
-      },
-    ],
-    voucherOffers: [
-      {
-        portalId: 'hdfc_smartbuy_gyftr',
-        portalName: 'HDFC SmartBuy GyFTR',
-        multiplierRate: 0.165, // 5X points = 16.5% effective
-        monthlyBonusCapInr: 15000,
-        voucherConvenienceFeeRate: 0.025, // typical 2.5% fee on Amazon/Flipkart vouchers, 0% on brands
-        eligibleCategories: ['DINING', 'SHOPPING', 'MOVIES', 'GROCERY'],
-        supportedBrands: [
-          'LIFESTYLE',
-          'SHOPPERS_STOP',
-          'WESTSIDE',
-          'CROMA',
-          'PVR',
-          'CINEPOLIS',
-          'MAINLAND_CHINA',
-          'BARBEQUE_NATION',
-          'DECATHLON',
-          'BATA',
-        ],
-      },
-    ],
+  ],
+  'hdfc-dcb-metal': [
+    {
+      portalId: 'hdfc_smartbuy_gyftr',
+      portalName: 'HDFC SmartBuy GyFTR',
+      multiplierRate: 0.165,
+      monthlyBonusCapInr: 10000,
+      voucherConvenienceFeeRate: 0.025,
+      eligibleCategories: ['DINING', 'SHOPPING', 'MOVIES', 'GROCERY'],
+      supportedBrands: [
+        'LIFESTYLE',
+        'SHOPPERS_STOP',
+        'WESTSIDE',
+        'CROMA',
+        'PVR',
+        'CINEPOLIS',
+        'MAINLAND_CHINA',
+        'BARBEQUE_NATION',
+        'DECATHLON',
+      ],
+    },
+  ],
+  'hdfc-regalia-gold': [
+    {
+      portalId: 'hdfc_smartbuy_gyftr',
+      portalName: 'HDFC SmartBuy GyFTR',
+      multiplierRate: 0.0665,
+      monthlyBonusCapInr: 4000,
+      voucherConvenienceFeeRate: 0.025,
+      eligibleCategories: ['DINING', 'SHOPPING', 'MOVIES', 'GROCERY'],
+      supportedBrands: [
+        'LIFESTYLE',
+        'SHOPPERS_STOP',
+        'WESTSIDE',
+        'CROMA',
+        'PVR',
+        'DECATHLON',
+        'RELIANCE_DIGITAL',
+        'MORE_RETAIL',
+        'RELIANCE_SMART',
+      ],
+    },
+  ],
+  'sbi-cashback': [
+    {
+      portalId: 'amazon_maximize',
+      portalName: 'Amazon / Maximize Vouchers',
+      multiplierRate: 0.05,
+      monthlyBonusCapInr: 5000,
+      voucherConvenienceFeeRate: 0.0,
+      eligibleCategories: ['SHOPPING', 'MOVIES', 'DINING'],
+      supportedBrands: ['LIFESTYLE', 'SHOPPERS_STOP', 'PVR', 'CINEPOLIS', 'DECATHLON'],
+    },
+  ],
+  'hdfc-tataneu-infinity': [
+    {
+      portalId: 'tata_neu_vouchers',
+      portalName: 'Tata Neu Brand Vouchers',
+      multiplierRate: 0.10,
+      monthlyBonusCapInr: 5000,
+      voucherConvenienceFeeRate: 0.0,
+      eligibleCategories: ['SHOPPING', 'GROCERY', 'TRAVEL'],
+      supportedBrands: ['WESTSIDE', 'CROMA', 'BIGBASKET', 'TAJ_HOTELS'],
+    },
+  ],
+};
+
+const SPECIAL_MILESTONES: Record<
+  string,
+  { targetSpendInr: number; bonusValueInr: number; effectiveBonusWeight: number; description: string }
+> = {
+  'amex-plat-travel': {
+    targetSpendInr: 400000,
+    bonusValueInr: 32000,
+    effectiveBonusWeight: 0.06,
+    description: '40,000 MR points + ₹10,000 Taj Stay voucher on reaching ₹4 Lakh annual spend (~8% total return)',
   },
-  {
-    id: 'hdfc_regalia_gold',
-    name: 'HDFC Regalia Gold Credit Card',
-    issuer: 'HDFC Bank',
-    network: 'Visa',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.0133, // 4 points per ₹150, 1 point = ₹0.50
-    pointValueInr: 0.5,
-    exclusions: ['FUEL', 'RENT'],
-    cardColor: {
-      gradient: 'from-amber-700 via-yellow-800 to-stone-900',
-      textColor: 'text-yellow-200',
-      badgeColor: 'bg-yellow-400/20 text-yellow-200 border-yellow-400/30',
-    },
-    keyPerks: [
-      '1.33% base reward rate (4 RP per ₹150, 1 RP = ₹0.50)',
-      '6.65% (5X RP) on SmartBuy instant vouchers and Marks & Spencer, Myntra, Nykaa, Reliance Digital',
-      'Milestone vouchers of ₹1,500 every ₹1.5L spend',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['SHOPPING'],
-        mccs: ['5311', '5651', '5732'],
-        rewardRate: 0.0665, // 5X RP = 20 points per ₹150 = 6.65%
-        monthlyCapInr: 2500,
-        brandIdentifiers: ['MYNTRA', 'NYKAA', 'MARKS_AND_SPENCER', 'RELIANCE_DIGITAL'],
-        description: '5X accelerated reward points on select retail partners',
-      },
-    ],
-    voucherOffers: [
-      {
-        portalId: 'hdfc_smartbuy_gyftr',
-        portalName: 'HDFC SmartBuy GyFTR',
-        multiplierRate: 0.0665, // 5X points
-        monthlyBonusCapInr: 4000,
-        voucherConvenienceFeeRate: 0.02,
-        eligibleCategories: ['DINING', 'SHOPPING', 'MOVIES'],
-        supportedBrands: [
-          'LIFESTYLE',
-          'SHOPPERS_STOP',
-          'WESTSIDE',
-          'CROMA',
-          'PVR',
-          'BARBEQUE_NATION',
-          'DECATHLON',
-        ],
-      },
-    ],
+  'axis-atlas': {
+    targetSpendInr: 750000,
+    bonusValueInr: 20000,
+    effectiveBonusWeight: 0.026,
+    description: 'Tier milestone bonus: 10,000 extra Edge Miles on crossing spend tiers',
   },
-  {
-    id: 'sbi_cashback',
-    name: 'SBI Cashback Credit Card',
-    issuer: 'State Bank of India',
-    network: 'Visa',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.01, // 1% on offline POS transactions
-    pointValueInr: 1.0, // Direct statement cashback in INR
-    exclusions: ['FUEL', 'RENT', 'UTILITIES', 'JEWELLERY'],
-    cardColor: {
-      gradient: 'from-blue-700 via-indigo-900 to-slate-950',
-      textColor: 'text-cyan-200',
-      badgeColor: 'bg-cyan-500/20 text-cyan-200 border-cyan-400/30',
-    },
-    keyPerks: [
-      '5% flat statement cashback on almost ALL online transactions',
-      '₹5,000 monthly cashback cap (spends up to ₹1,00,000/mo)',
-      '1% offline POS cashback',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['SHOPPING', 'FOOD_DELIVERY', 'GROCERY', 'MOVIES', 'TRAVEL'],
-        mccs: ['5411', '5812', '5814', '5311', '7832', '4511', '4722'],
-        rewardRate: 0.05, // 5% online
-        monthlyCapInr: 5000,
-        isOnlineOnly: true,
-        description: '5% unlimited online statement cashback up to ₹5,000/mo cap',
-      },
-    ],
+};
+
+const SPECIAL_BOGO: Record<
+  string,
+  { platform: 'BOOKMYSHOW' | 'PVR'; maxDiscountPerTicketInr: number; monthlyTimesLimit: number }
+> = {
+  'kotak-pvr-inox': {
+    platform: 'PVR',
+    maxDiscountPerTicketInr: 400,
+    monthlyTimesLimit: 1,
   },
-  {
-    id: 'hsbc_live_plus',
-    name: 'HSBC Live+ Credit Card',
-    issuer: 'HSBC',
-    network: 'Visa',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.015, // 1.5% base cashback on all other spends
-    pointValueInr: 1.0,
-    exclusions: ['FUEL', 'RENT', 'UTILITIES'],
-    cardColor: {
-      gradient: 'from-red-700 via-rose-900 to-zinc-950',
-      textColor: 'text-rose-200',
-      badgeColor: 'bg-red-500/20 text-rose-200 border-red-400/30',
-    },
-    keyPerks: [
-      '10% accelerated cashback on Dining, Food Delivery, and Supermarket/Grocery (MCC 5411/5812)',
-      '₹1,000 monthly cashback cap across accelerated categories',
-      '1.5% unlimited base cashback everywhere else',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['DINING', 'FOOD_DELIVERY', 'GROCERY'],
-        mccs: ['5411', '5812', '5814'],
-        rewardRate: 0.10, // 10% cashback
-        monthlyCapInr: 1000,
-        minTxnInr: 100,
-        description: '10% cashback on Dining, Groceries & Food Delivery (DMart, Swiggy, Zomato)',
-      },
-    ],
+  'icici-emeralde-metal': {
+    platform: 'BOOKMYSHOW',
+    maxDiscountPerTicketInr: 750,
+    monthlyTimesLimit: 2,
   },
-  {
-    id: 'hdfc_swiggy',
-    name: 'HDFC Swiggy Credit Card',
-    issuer: 'HDFC Bank',
-    network: 'Mastercard',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.01,
-    pointValueInr: 1.0, // Cashback credited directly as Swiggy Money
-    exclusions: ['FUEL', 'RENT', 'UTILITIES', 'JEWELLERY'],
-    cardColor: {
-      gradient: 'from-orange-600 via-amber-800 to-zinc-950',
-      textColor: 'text-orange-200',
-      badgeColor: 'bg-orange-500/20 text-orange-200 border-orange-400/30',
-    },
-    keyPerks: [
-      '10% cashback on Swiggy, Dineout, Instamart & Genie (up to ₹1,500/mo)',
-      '5% cashback on leading online platforms (Amazon, Flipkart, Myntra, Nykaa) up to ₹1,500/mo',
-      '1% cashback on other spends',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['FOOD_DELIVERY', 'DINING'],
-        mccs: ['5812', '5814'],
-        rewardRate: 0.10,
-        monthlyCapInr: 1500,
-        brandIdentifiers: ['SWIGGY', 'SWIGGY_DINEOUT', 'INSTAMART'],
-        description: '10% cashback on Swiggy App and Swiggy Dineout restaurant payments',
-      },
-      {
-        categories: ['SHOPPING'],
-        mccs: ['5311'],
-        rewardRate: 0.05,
-        monthlyCapInr: 1500,
-        isOnlineOnly: true,
-        brandIdentifiers: ['AMAZON', 'FLIPKART', 'MYNTRA', 'NYKAA', 'AJIO', 'UBER'],
-        description: '5% cashback on top online merchants',
-      },
-    ],
+  'indusind-legend': {
+    platform: 'BOOKMYSHOW',
+    maxDiscountPerTicketInr: 200,
+    monthlyTimesLimit: 3,
   },
-  {
-    id: 'airtel_axis',
-    name: 'Airtel Axis Bank Credit Card',
-    issuer: 'Axis Bank',
-    network: 'Mastercard',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.01,
-    pointValueInr: 1.0,
-    exclusions: ['FUEL', 'RENT', 'JEWELLERY'],
-    cardColor: {
-      gradient: 'from-red-600 via-stone-900 to-black',
-      textColor: 'text-red-300',
-      badgeColor: 'bg-red-500/20 text-red-300 border-red-500/30',
-    },
-    keyPerks: [
-      '10% cashback on Swiggy, Zomato, and BigBasket (up to ₹500/mo combined)',
-      '25% cashback on Airtel mobile, broadband, and DTH recharges (up to ₹300/mo)',
-      '10% on utility bills via Airtel Thanks App (up to ₹300/mo)',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['FOOD_DELIVERY', 'DINING', 'GROCERY'],
-        mccs: ['5812', '5814', '5411'],
-        rewardRate: 0.10,
-        monthlyCapInr: 500,
-        brandIdentifiers: ['SWIGGY', 'ZOMATO', 'BIGBASKET'],
-        description: '10% statement cashback on Swiggy, Zomato, and BigBasket',
-      },
-      {
-        categories: ['UTILITIES'],
-        mccs: ['4814', '4900'],
-        rewardRate: 0.10,
-        monthlyCapInr: 300,
-        description: '10% on utility bill payments via Airtel Thanks App',
-      },
-    ],
-  },
-  {
-    id: 'axis_atlas',
-    name: 'Axis Bank Atlas Credit Card',
-    issuer: 'Axis Bank',
-    network: 'Visa',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.04, // 2 Edge Miles per ₹100 = 4% travel value (1 EM = 2 Partner Points = ~₹2.00)
-    pointValueInr: 2.0, // Real-world value when transferred to airline miles (Accor, Singapore Krisflyer, etc.)
-    exclusions: ['FUEL', 'RENT', 'WALLET_LOAD'],
-    cardColor: {
-      gradient: 'from-slate-800 via-blue-950 to-neutral-900',
-      textColor: 'text-blue-200',
-      badgeColor: 'bg-blue-400/20 text-blue-200 border-blue-400/30',
-    },
-    keyPerks: [
-      '4% baseline return across all general offline/online spends (2 Edge Miles/₹100)',
-      '10% accelerated return on direct airline & hotel booking spends (5 Edge Miles/₹100)',
-      'Up to 10,000 bonus Edge Miles on Tier milestones',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['TRAVEL'],
-        mccs: ['4511', '7011', '4722'],
-        rewardRate: 0.10, // 5 Edge Miles per ₹100 = 10%
-        monthlyCapInr: 20000,
-        description: '5 Edge Miles per ₹100 (10% value) on direct airlines and hotel websites',
-      },
-    ],
-  },
-  {
-    id: 'icici_amazon_pay',
-    name: 'Amazon Pay ICICI Credit Card',
-    issuer: 'ICICI Bank',
-    network: 'Visa',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.01,
-    pointValueInr: 1.0, // Direct Amazon Pay balance
-    exclusions: ['FUEL', 'RENT'],
-    cardColor: {
-      gradient: 'from-amber-600 via-neutral-900 to-black',
-      textColor: 'text-amber-200',
-      badgeColor: 'bg-amber-400/20 text-amber-200 border-amber-400/30',
-    },
-    keyPerks: [
-      '5% unlimited cashback on Amazon for Prime members (3% for non-Prime)',
-      '2% unlimited cashback on 100+ Amazon Pay partner merchants (Uber, Swiggy, BookMyShow)',
-      '1% unlimited on offline and other online spends',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['SHOPPING'],
-        mccs: ['5311'],
-        rewardRate: 0.05,
-        monthlyCapInr: 999999, // Unlimited
-        isOnlineOnly: true,
-        brandIdentifiers: ['AMAZON'],
-        description: '5% unlimited cashback for Amazon Prime members',
-      },
-      {
-        categories: ['FOOD_DELIVERY', 'MOVIES', 'TRAVEL'],
-        mccs: ['5812', '7832', '4121'],
-        rewardRate: 0.02,
-        monthlyCapInr: 999999, // Unlimited
-        brandIdentifiers: ['UBER', 'SWIGGY', 'ZOMATO', 'BOOKMYSHOW'],
-        description: '2% unlimited cashback on Amazon Pay partner merchants',
-      },
-    ],
-  },
-  {
-    id: 'tata_neu_infinity_rupay',
-    name: 'Tata Neu Infinity HDFC Credit Card (RuPay)',
-    issuer: 'HDFC Bank',
-    network: 'RuPay',
-    type: 'RUPAY_UPI_CREDIT_CARD',
-    upiEnabled: true,
-    baseRewardRate: 0.015, // 1.5% NeuCoins on UPI Scan & Pay and non-Tata spends
-    pointValueInr: 1.0, // 1 NeuCoin = ₹1.00 on Tata brands
-    exclusions: ['FUEL', 'RENT'],
-    cardColor: {
-      gradient: 'from-violet-800 via-purple-950 to-neutral-950',
-      textColor: 'text-purple-200',
-      badgeColor: 'bg-purple-500/20 text-purple-200 border-purple-400/30',
-    },
-    keyPerks: [
-      '1.5% NeuCoins on ALL RuPay UPI Scan & Pay merchant transactions via Tata Neu App',
-      '10% NeuCoins on Tata Brands (5% card + 5% NeuPass) across BigBasket, Croma, Westside, Tata 1mg, Taj',
-      'Direct RuPay UPI linkage in GPay, PhonePe, and Tata Neu',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['GROCERY', 'SHOPPING', 'TRAVEL'],
-        mccs: ['5411', '5311', '5732', '7011'],
-        rewardRate: 0.10, // 10% on Tata Brands
-        monthlyCapInr: 10000,
-        brandIdentifiers: ['BIGBASKET', 'CROMA', 'WESTSIDE', 'TATA_1MG', 'TAJ_HOTELS', 'TITAN', 'TANISHQ'],
-        description: '10% NeuCoins on Tata Brands with NeuPass (BigBasket, Croma, Westside, Taj)',
-      },
-    ],
-  },
-  {
-    id: 'kiwi_axis_rupay',
-    name: 'Kiwi Axis Bank RuPay Credit Card',
-    issuer: 'Axis Bank',
-    network: 'RuPay',
-    type: 'RUPAY_UPI_CREDIT_CARD',
-    upiEnabled: true,
-    baseRewardRate: 0.02, // 2% flat assured cashback on UPI Scan & Pay
-    pointValueInr: 1.0,
-    exclusions: ['FUEL', 'RENT', 'PEER_TO_PEER'],
-    cardColor: {
-      gradient: 'from-emerald-700 via-teal-900 to-black',
-      textColor: 'text-emerald-300',
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
-    },
-    keyPerks: [
-      '2% assured Kiwis (cashback) on all merchant UPI Scan & Pay QR payments',
-      'Up to 5% accelerated Kiwis on select partner offline stores',
-      'Direct UPI scan via Kiwi App or Google Pay',
-    ],
-    categoryMultipliers: [
-      {
-        categories: ['GENERAL', 'DINING', 'GROCERY'],
-        mccs: ['5411', '5812', '5814'],
-        rewardRate: 0.02,
-        monthlyCapInr: 1500,
-        description: '2% assured Kiwis directly credited to bank account for UPI QR payments',
-      },
-    ],
-  },
-  {
-    id: 'amex_plat_travel',
-    name: 'American Express Platinum Travel Card',
-    issuer: 'American Express',
-    network: 'Amex',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.015, // 1 Membership Reward point per ₹50 = ~1.5%
-    pointValueInr: 0.4, // Baseline MR value, jumps dramatically with milestones
-    exclusions: ['FUEL', 'RENT', 'UTILITIES', 'INSURANCE'],
-    cardColor: {
-      gradient: 'from-slate-300 via-gray-400 to-zinc-600',
-      textColor: 'text-zinc-950',
-      badgeColor: 'bg-zinc-800 text-zinc-100 border-zinc-700',
-    },
-    keyPerks: [
-      'Top-tier milestone card: 48,000 MR points + ₹10,000 Taj Voucher on ₹4L annual spend',
-      'Effective return rate of ~7.5% when ₹4L milestone is achieved',
-      '3X points via Amex Reward Multiplier on GyFTR vouchers',
-    ],
-    annualMilestoneBonus: {
-      targetSpendInr: 400000,
-      bonusValueInr: 30000, // 48k points (~₹20k) + ₹10,000 Taj voucher
-      effectiveBonusWeight: 0.06, // Extra 6% effective value towards milestone
-      description: '₹4,00,000 annual spend unlocks 48,000 points + ₹10,000 Taj Stay Voucher (~7.5% return)',
-    },
-    categoryMultipliers: [],
-    voucherOffers: [
-      {
-        portalId: 'amex_reward_multiplier',
-        portalName: 'Amex Reward Multiplier (GyFTR)',
-        multiplierRate: 0.045, // 3X points
-        monthlyBonusCapInr: 10000,
-        eligibleCategories: ['SHOPPING', 'DINING', 'MOVIES'],
-        supportedBrands: ['LIFESTYLE', 'SHOPPERS_STOP', 'CROMA', 'WESTSIDE', 'PVR'],
-      },
-    ],
-  },
-  {
-    id: 'icici_sapphiro',
-    name: 'ICICI Bank Sapphiro Credit Card',
-    issuer: 'ICICI Bank',
-    network: 'Visa',
-    type: 'CREDIT_CARD',
-    upiEnabled: false,
-    baseRewardRate: 0.005, // 2 points per ₹100 domestic = 0.5%
-    pointValueInr: 0.25,
-    exclusions: ['FUEL', 'RENT'],
-    cardColor: {
-      gradient: 'from-sky-800 via-indigo-950 to-black',
-      textColor: 'text-sky-300',
-      badgeColor: 'bg-sky-400/20 text-sky-300 border-sky-400/30',
-    },
-    keyPerks: [
-      'Buy-One-Get-One (BOGO) movie ticket up to ₹500 off on BookMyShow twice a month',
-      'Complimentary airport and railway lounge access',
-      '4 Reward Points per ₹100 on international spends',
-    ],
-    bogoOffer: {
-      platform: 'BOOKMYSHOW',
-      maxDiscountPerTicketInr: 500,
-      monthlyTimesLimit: 2,
-    },
-    categoryMultipliers: [
-      {
-        categories: ['MOVIES'],
-        mccs: ['7832'],
-        rewardRate: 0.50, // Effective 50% discount on 2 tickets
-        monthlyCapInr: 1000,
-        description: 'BOGO up to ₹500 discount on 2nd movie ticket via BookMyShow twice a month',
-      },
-    ],
-  },
-];
+};
+
+/**
+ * Converts a CardProductRule from the 60-card catalog into the engine-compatible PaymentInstrument
+ */
+export function convertCardRuleToPaymentInstrument(card: CardProductRule): PaymentInstrument {
+  const networkMap: Record<string, PaymentNetwork> = {
+    VISA: 'Visa',
+    MASTERCARD: 'Mastercard',
+    RUPAY: 'RuPay',
+    DINERS: 'DinersClub',
+    AMEX: 'Amex',
+  };
+
+  const categoryMultipliers: CategoryMultiplier[] = card.categoryAccelerators.map((acc) => {
+    const categories: SpendingCategory[] = [];
+    const text = (acc.categoryOrMerchant + ' ' + (acc.description || '')).toUpperCase();
+
+    if (text.includes('GROCERY') || text.includes('SUPERMARKET') || acc.mccs.includes('5411')) {
+      categories.push('GROCERY');
+    }
+    if (text.includes('DINING') || text.includes('RESTAURANT') || acc.mccs.includes('5812') || acc.mccs.includes('5814')) {
+      categories.push('DINING');
+    }
+    if (text.includes('FOOD DELIVERY') || text.includes('SWIGGY') || text.includes('ZOMATO')) {
+      categories.push('FOOD_DELIVERY');
+    }
+    if (text.includes('SHOPPING') || text.includes('MYNTRA') || text.includes('AMAZON') || text.includes('FLIPKART') || acc.mccs.includes('5311')) {
+      categories.push('SHOPPING');
+    }
+    if (text.includes('MOVIE') || text.includes('PVR') || text.includes('BOOKMYSHOW') || acc.mccs.includes('7832')) {
+      categories.push('MOVIES');
+    }
+    if (text.includes('TRAVEL') || text.includes('AIRLINE') || text.includes('HOTEL') || acc.mccs.includes('4511') || acc.mccs.includes('7011')) {
+      categories.push('TRAVEL');
+    }
+    if (
+      text.includes('UTILITY') ||
+      text.includes('RECHARGE') ||
+      text.includes('ELECTRICITY') ||
+      text.includes('PHONEPE') ||
+      text.includes('AIRTEL') ||
+      text.includes('BILL') ||
+      acc.mccs.includes('4814') ||
+      acc.mccs.includes('4900')
+    ) {
+      categories.push('UTILITIES');
+    }
+    if (
+      text.includes('FUEL') ||
+      text.includes('PETROL') ||
+      text.includes('IOCL') ||
+      text.includes('BPCL') ||
+      text.includes('HPCL') ||
+      acc.mccs.includes('5541') ||
+      acc.mccs.includes('5542')
+    ) {
+      categories.push('FUEL');
+    }
+    if (categories.length === 0) {
+      categories.push('GENERAL');
+    }
+
+    return {
+      categories,
+      mccs: acc.mccs,
+      rewardRate: acc.effectiveYieldBps / 10000,
+      monthlyCapInr: acc.monthlyCapInr || 999999,
+      minTxnInr: acc.minTransactionInr,
+      isOnlineOnly: acc.isOnlineOnly,
+      isOfflineOnly: acc.isOfflineOnly,
+      brandIdentifiers: [card.slug.toUpperCase(), card.issuer.toUpperCase()],
+      description: acc.description || `${acc.effectiveYieldBps / 100}% on ${acc.categoryOrMerchant}`,
+    };
+  });
+
+  return {
+    id: card.slug,
+    name: card.name,
+    issuer: card.issuer,
+    network: networkMap[card.network] || 'Visa',
+    type: card.upiLinkable ? 'RUPAY_UPI_CREDIT_CARD' : 'CREDIT_CARD',
+    upiEnabled: card.upiLinkable,
+    baseRewardRate: card.baseRewardRateBps / 10000,
+    pointValueInr: card.pointValueInr,
+    categoryMultipliers,
+    voucherOffers: SPECIAL_VOUCHER_OFFERS[card.slug],
+    annualMilestoneBonus: SPECIAL_MILESTONES[card.slug],
+    bogoOffer: SPECIAL_BOGO[card.slug],
+    exclusions: (card.exclusions as SpendingCategory[]) || ['RENT', 'WALLET_LOAD'],
+    cardColor: card.cardColor,
+    keyPerks: card.keyPerks,
+  };
+}
 
 // -------------------------------------------------------------------------
-// 2. DINING AGGREGATORS & STACKING CHANNELS
+// 1. ALL 60 INDIAN CREDIT & RUPAY UPI CARDS
+// -------------------------------------------------------------------------
+export const INDIAN_PAYMENT_INSTRUMENTS: PaymentInstrument[] = INDIAN_CARDS_60_CATALOG.map(
+  convertCardRuleToPaymentInstrument
+);
+
+// -------------------------------------------------------------------------
+// 2. DINING AGGREGATOR CHANNELS (DOUBLE-DIP STACKING)
 // -------------------------------------------------------------------------
 export const DINING_AGGREGATORS: DiningAggregatorChannel[] = [
   {
@@ -582,28 +376,40 @@ export const DINING_AGGREGATORS: DiningAggregatorChannel[] = [
     typicalBaseDiscount: 0.12, // 12% average restaurant bill discount
     partnerCardBoosts: [
       {
-        cardId: 'hdfc_swiggy',
+        cardId: 'hdfc-swiggy',
         extraCashbackRate: 0.10,
         monthlyCapInr: 1500,
         description: '10% cashback on total Dineout bill via HDFC Swiggy Card',
       },
       {
-        cardId: 'hsbc_live_plus',
+        cardId: 'hsbc-live-plus',
         extraCashbackRate: 0.10,
         monthlyCapInr: 1000,
         description: '10% dining cashback on Dineout transaction (MCC 5812)',
       },
       {
-        cardId: 'airtel_axis',
+        cardId: 'axis-airtel',
         extraCashbackRate: 0.10,
         monthlyCapInr: 500,
         description: '10% cashback on Swiggy Dineout via Airtel Axis',
       },
       {
-        cardId: 'sbi_cashback',
+        cardId: 'sbi-cashback',
         extraCashbackRate: 0.05,
         monthlyCapInr: 5000,
         description: '5% online cashback on Dineout in-app payment',
+      },
+      {
+        cardId: 'yes-paisasave',
+        extraCashbackRate: 0.06,
+        monthlyCapInr: 600,
+        description: '6% dining cashback via Yes Bank PaisaSave',
+      },
+      {
+        cardId: 'axis-myzone',
+        extraCashbackRate: 0.24, // Flat ₹120 off min ₹500
+        monthlyCapInr: 480,
+        description: 'Up to ₹120 flat discount 4x a month with code AXISMYZONE',
       },
     ],
   },
@@ -614,19 +420,31 @@ export const DINING_AGGREGATORS: DiningAggregatorChannel[] = [
     typicalBaseDiscount: 0.10, // 10% average restaurant bill discount
     partnerCardBoosts: [
       {
-        cardId: 'hsbc_live_plus',
+        cardId: 'hsbc-live-plus',
         extraCashbackRate: 0.10,
         monthlyCapInr: 1000,
         description: '10% dining cashback on Zomato Pay bill',
       },
       {
-        cardId: 'airtel_axis',
+        cardId: 'axis-airtel',
         extraCashbackRate: 0.10,
         monthlyCapInr: 500,
         description: '10% cashback on Zomato platform via Airtel Axis',
       },
       {
-        cardId: 'sbi_cashback',
+        cardId: 'axis-neo',
+        extraCashbackRate: 0.40,
+        monthlyCapInr: 240,
+        description: '40% off on Zomato up to ₹120 twice a month with code AXISNEO',
+      },
+      {
+        cardId: 'yes-paisasave',
+        extraCashbackRate: 0.06,
+        monthlyCapInr: 600,
+        description: '6% dining cashback via Yes Bank PaisaSave',
+      },
+      {
+        cardId: 'sbi-cashback',
         extraCashbackRate: 0.05,
         monthlyCapInr: 5000,
         description: '5% online cashback paying Zomato Pay via app',
@@ -640,13 +458,31 @@ export const DINING_AGGREGATORS: DiningAggregatorChannel[] = [
     typicalBaseDiscount: 0.25, // 25% table discount for Prime members
     partnerCardBoosts: [
       {
-        cardId: 'hsbc_live_plus',
+        cardId: 'indusind-eazydiner',
+        extraCashbackRate: 0.25,
+        monthlyCapInr: 2000,
+        description: '25% extra instant discount up to ₹1,000 twice a month on PayEazy',
+      },
+      {
+        cardId: 'indusind-eazydiner-plat',
+        extraCashbackRate: 0.20,
+        monthlyCapInr: 1000,
+        description: '20% extra instant discount up to ₹500 via PayEazy',
+      },
+      {
+        cardId: 'hsbc-live-plus',
         extraCashbackRate: 0.10,
         monthlyCapInr: 1000,
         description: '10% cashback on food and dining spends',
       },
       {
-        cardId: 'sbi_cashback',
+        cardId: 'yes-paisasave',
+        extraCashbackRate: 0.06,
+        monthlyCapInr: 600,
+        description: '6% dining cashback via Yes Bank PaisaSave',
+      },
+      {
+        cardId: 'sbi-cashback',
         extraCashbackRate: 0.05,
         monthlyCapInr: 5000,
         description: '5% cashback on in-app PayEazy payment',
@@ -728,7 +564,7 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     supportsDiningApps: false,
     supportsTataNeuDirect: false,
     mccInsight: 'Codes strictly as MCC 5411 (Grocery/Supermarket) on offline POS swipe machines.',
-    hackTip: 'DMart does NOT accept GyFTR vouchers and does NOT give 5% on SBI Cashback (offline POS gives only 1%). Best card is HSBC Live+ (10% cashback up to ₹1,000/mo) or Kiwi/Tata Neu RuPay on UPI.',
+    hackTip: 'DMart does NOT accept GyFTR vouchers and does NOT give 5% on SBI Cashback (offline POS gives only 1%). Best card is HSBC Live+ (10% cashback up to ₹1,000/mo), Federal Paisaback (7.5%), IDFC Power+ (5%), RBL ShopRite (5%), or RuPay UPI cards.',
   },
   {
     id: 'reliance_smart',
@@ -743,7 +579,21 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     supportsDiningApps: false,
     supportsTataNeuDirect: false,
     mccInsight: 'Codes as MCC 5411. Also accepts Reliance Retail and JioMart gift vouchers.',
-    hackTip: 'Buy Reliance gift vouchers on SmartBuy using Infinia (16.5%) or Regalia Gold (6.65%), or swipe HSBC Live+ for 10% direct cashback.',
+    hackTip: 'Buy Reliance gift vouchers on SmartBuy using Infinia (16.5%) or Regalia Gold (6.65%), or swipe HSBC Live+ (10%), Federal Paisaback (7.5%), IDFC Power+ (5%), or RBL ShopRite (5%).',
+  },
+  {
+    id: 'lulu_hypermarket',
+    name: 'LuLu Hypermarket & Supermarket',
+    aliases: ['lulu', 'lulu hypermarket', 'lulu supermarket', 'lulu mall', 'lulu international'],
+    primaryCategory: 'GROCERY',
+    mcc: '5411',
+    supportedEnvironments: ['OFFLINE_POS', 'ONLINE'],
+    hasGiftVouchers: true,
+    voucherBrands: ['LULU'],
+    supportsDiningApps: false,
+    supportsTataNeuDirect: false,
+    mccInsight: 'Codes as MCC 5411 (Grocery/Supermarket). Massive hypermarket presence across South & North India.',
+    hackTip: 'Swipe HSBC Live+ for 10% direct cashback, Federal Paisaback RuPay for 7.5%, IDFC Power+ for 5%, or RBL ShopRite for 5% cashback at the billing counter.',
   },
   {
     id: 'more_supermarket',
@@ -757,7 +607,7 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     supportsDiningApps: false,
     supportsTataNeuDirect: false,
     mccInsight: 'Codes as MCC 5411. More vouchers widely available on GyFTR / SmartBuy.',
-    hackTip: 'Buy More e-vouchers on HDFC SmartBuy at 16.5% via Infinia or 6.65% via Regalia Gold before paying at counter.',
+    hackTip: 'Buy More e-vouchers on HDFC SmartBuy at 16.5% via Infinia, or swipe HSBC Live+ (10%), Federal Paisaback (7.5%), IDFC Power+ (5%), or RBL ShopRite (5%) before paying.',
   },
   {
     id: 'bigbasket',
@@ -785,7 +635,7 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     supportsDiningApps: false,
     supportsTataNeuDirect: false,
     mccInsight: 'Codes as MCC 5411 / 5814 online grocery.',
-    hackTip: 'Pay via HSBC Live+ (10% cashback) or SBI Cashback Card (5% online cashback).',
+    hackTip: 'Pay via HSBC Live+ (10% cashback), HDFC Swiggy Card (5%), or SBI Cashback Card (5% online cashback).',
   },
   {
     id: 'zepto',
@@ -802,6 +652,34 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     hackTip: 'Pay with HSBC Live+ (10% cashback) or SBI Cashback (5% statement cashback).',
   },
 
+  // Telecom & Utilities
+  {
+    id: 'airtel_thanks',
+    name: 'Airtel Thanks (Recharges & Utilities)',
+    aliases: ['airtel', 'airtel thanks', 'airtel broadband', 'airtel dth', 'airtel recharge', 'airtel fiber'],
+    primaryCategory: 'UTILITIES',
+    mcc: '4814',
+    supportedEnvironments: ['ONLINE'],
+    hasGiftVouchers: false,
+    supportsDiningApps: false,
+    supportsTataNeuDirect: false,
+    mccInsight: 'Codes as MCC 4814 (Telecom) and MCC 4900 (Utilities).',
+    hackTip: 'Pay Airtel mobile/broadband bills with Airtel Axis Card for 25% cashback (up to ₹250/mo), or utility bills with Airtel Axis for 10% cashback (up to ₹250/mo).',
+  },
+  {
+    id: 'phonepe_app',
+    name: 'PhonePe (Utilities & Recharges)',
+    aliases: ['phonepe', 'phonepe app', 'phonepe bill', 'phonepe recharge', 'phonepe electricity'],
+    primaryCategory: 'UTILITIES',
+    mcc: '4900',
+    supportedEnvironments: ['ONLINE', 'UPI_QR_ONLY'],
+    hasGiftVouchers: false,
+    supportsDiningApps: false,
+    supportsTataNeuDirect: false,
+    mccInsight: 'Codes as MCC 4900 (Utilities) and MCC 4814 (Telecom/Recharge).',
+    hackTip: 'Pay with HDFC PhonePe Ultimo (10% up to ₹1,000/mo) or SBI PhonePe Black (10% up to ₹1,000/mo) for electricity, water, and recharge bills.',
+  },
+
   // Dining & Restaurants
   {
     id: 'mainland_china',
@@ -816,7 +694,7 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     diningAppIds: ['swiggy_dineout', 'zomato_dining', 'eazydiner_prime'],
     supportsTataNeuDirect: false,
     mccInsight: 'Codes as MCC 5812 (Restaurants). Listed on Swiggy Dineout and EazyDiner Prime with 15%-25% bill discounts.',
-    hackTip: 'Double-Dip! Pay the bill via Swiggy Dineout (15% restaurant discount) using HDFC Swiggy Card (extra 10% cashback) or HSBC Live+ (10% dining cashback). Total return exceeds 23%!',
+    hackTip: 'Double-Dip! Pay via Swiggy Dineout or EazyDiner using IndusInd EazyDiner (25% off up to ₹1,000), HDFC Swiggy (10%), HSBC Live+ (10%), or Airtel Axis (10%). Total return exceeds 25%!',
   },
   {
     id: 'barbeque_nation',
@@ -1017,7 +895,7 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     supportsDiningApps: false,
     supportsTataNeuDirect: false,
     mccInsight: 'Movie tickets and food counters often code as MCC 7832 or MCC 5814 for popcorn/snacks.',
-    hackTip: 'For 2 tickets: Check ICICI Sapphiro on BookMyShow for BOGO up to ₹500 off! For snacks/food: Buy PVR e-voucher on SmartBuy via Infinia (16.5%) or swipe HSBC Live+ (10% dining).',
+    hackTip: 'For 2 tickets: Check Kotak PVR INOX, ICICI Emeralde Metal or BookMyShow for BOGO! For snacks/food: Buy PVR e-voucher on SmartBuy via Infinia (16.5%) or swipe HSBC Live+ (10% dining).',
   },
   {
     id: 'cinepolis',
@@ -1045,7 +923,7 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
     supportsDiningApps: false,
     supportsTataNeuDirect: false,
     mccInsight: 'Primary movie and event aggregator in India.',
-    hackTip: 'Apply ICICI Sapphiro card at checkout for Buy-One-Get-One (up to ₹500 off 2nd ticket), or SBI Cashback for 5% cashback.',
+    hackTip: 'Apply RBL Play, ICICI Emeralde, or IndusInd Legend for BOGO discounts, or SBI Cashback for 5% cashback.',
   },
 
   // Travel & Hotels
@@ -1093,9 +971,37 @@ export const INDIAN_MERCHANTS: MerchantDefinition[] = [
 ];
 
 // Helper maps for O(1) lookups
-export const INSTRUMENT_MAP = new Map<string, PaymentInstrument>(
-  INDIAN_PAYMENT_INSTRUMENTS.map((inst) => [inst.id, inst])
-);
+export const INSTRUMENT_MAP = new Map<string, PaymentInstrument>();
+
+// Populate INSTRUMENT_MAP with both hyphenated and snake_cased slugs
+for (const inst of INDIAN_PAYMENT_INSTRUMENTS) {
+  INSTRUMENT_MAP.set(inst.id, inst);
+  INSTRUMENT_MAP.set(inst.id.replace(/-/g, '_'), inst);
+  INSTRUMENT_MAP.set(inst.id.replace(/_/g, '-'), inst);
+}
+
+// Special legacy aliases
+const ALIAS_MAP: Record<string, string> = {
+  airtel_axis: 'axis-airtel',
+  tata_neu_infinity_rupay: 'hdfc-tataneu-infinity',
+  kiwi_rupay: 'kiwi-rupay-upi',
+  kiwi_axis_rupay: 'kiwi-rupay-upi',
+  hdfc_infinia: 'hdfc-infinia',
+  hdfc_regalia_gold: 'hdfc-regalia-gold',
+  sbi_cashback: 'sbi-cashback',
+  hsbc_live_plus: 'hsbc-live-plus',
+  hdfc_swiggy: 'hdfc-swiggy',
+  axis_atlas: 'axis-atlas',
+  icici_amazon_pay: 'icici-amazon-pay',
+  amex_plat_travel: 'amex-plat-travel',
+};
+
+for (const [alias, targetSlug] of Object.entries(ALIAS_MAP)) {
+  const target = INSTRUMENT_MAP.get(targetSlug);
+  if (target) {
+    INSTRUMENT_MAP.set(alias, target);
+  }
+}
 
 export const MERCHANT_MAP = new Map<string, MerchantDefinition>(
   INDIAN_MERCHANTS.map((m) => [m.id, m])

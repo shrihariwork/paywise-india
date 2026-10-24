@@ -23,6 +23,7 @@ const CATEGORY_FILTERS: Array<{ id: string; label: string; category?: SpendingCa
   { id: 'SHOPPING', label: '🛍️ Retail & Malls (5311/5732)', category: 'SHOPPING' },
   { id: 'MOVIES', label: '🎬 Movies & BMS (7832)', category: 'MOVIES' },
   { id: 'TRAVEL', label: '✈️ Airlines & Hotels (4511/7011)', category: 'TRAVEL' },
+  { id: 'UTILITIES', label: '⚡ Utilities & Telecom (4814/4900)', category: 'UTILITIES' },
 ];
 
 export const MccExplorerTab: React.FC<MccExplorerTabProps> = ({
@@ -65,6 +66,8 @@ export const MccExplorerTab: React.FC<MccExplorerTabProps> = ({
         return 1600;
       case 'TRAVEL':
         return 12000;
+      case 'UTILITIES':
+        return 1500;
       default:
         return 2500;
     }
